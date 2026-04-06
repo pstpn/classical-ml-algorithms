@@ -1,0 +1,6 @@
+outs:
+- md5: ea6a6b225332e4a94224be139fb25711.dir
+  size: 282560782
+  nfiles: 29
+  hash: md5
+  path: UCI HAR Dataset

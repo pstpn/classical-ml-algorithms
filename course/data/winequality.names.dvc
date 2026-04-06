@@ -1,0 +1,6 @@
+outs:
+- md5: 3108c08f0b04170953e22f87234a2701
+  size: 3305
+  isexec: true
+  hash: md5
+  path: winequality.names

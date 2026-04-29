@@ -1,0 +1,163 @@
+\documentclass{itmo}
+
+\setlist[itemize]{label=---}
+\setlist[enumerate]{label=\arabic*)}
+
+\usepackage{dcolumn}
+\newcolumntype{d}[1]{D{.}{.}{#1}}
+\usepackage{tabularx}
+
+\begin{document}
+
+\makecourseworktitle
+	{}
+	{}
+	{Определение сорта вина по описанию}
+	{Постнов~С.~А./P4135}
+	{Солодкая~М.~А./ассистент}
+	{}{}{}
+
+\maketableofcontents
+
+\chapter{Теоретическая часть}
+
+\section{Метод опорных векторов (SVM)}
+
+Метод опорных векторов (Support Vector Machine, SVM) --- это алгоритм машинного обучения, основанный на поиске гиперплоскости, максимально разделяющей объекты разных классов.
+Для линейно разделимых данных задача формулируется как оптимизационная:
+\[
+	\min_{w, b} \frac{1}{2} \|w\|^2 \quad \text{при условии} \quad y_i(w \cdot x_i + b) \geq 1, \quad \forall i
+\]
+Для линейно неразделимых данных вводится штрафной параметр $C$ и релаксационные переменные $\xi_i$:
+\[
+	\min_{w, b, \xi} \frac{1}{2} \|w\|^2 + C \sum_{i=1}^{n} \xi_i \quad \text{при условии} \quad y_i(w \cdot x_i + b) \geq 1 - \xi_i, \quad \xi_i \geq 0
+\]
+
+Для нелинейной классификации используется <<kernel trick>> --- замена скалярного произведения на ядерную функцию $K(x_i, x_j)$:
+\begin{itemize}
+	\item Линейное ядро: $K(x_i, x_j) = x_i \cdot x_j$
+	\item RBF-ядро (радиальная базисная функция): $K(x_i, x_j) = \exp(-\gamma \|x_i - x_j\|^2)$
+	\item Полиномиальное ядро: $K(x_i, x_j) = (\gamma \cdot x_i \cdot x_j + r)^d$
+\end{itemize}
+
+\section{Градиентный бустинг}
+
+Градиентный бустинг --- это ансамблевый метод, который строит последовательность слабых моделей (обычно деревьев решений), каждая из которых исправляет ошибки предыдущей.
+На каждой итерации $t$ новая модель $h_t(x)$ обучается на псевдоостатках $r_i^{(t)}$, вычисленных как градиент функции потерь:
+\[
+	r_i^{(t)} = -\frac{\partial L(y_i, F_{t-1}(x_i))}{\partial F_{t-1}(x_i)}
+\]
+Предсказание ансамбля обновляется:
+\[
+	F_t(x) = F_{t-1}(x) + \eta \cdot h_t(x)
+\]
+, где $\eta$ --- скорость обучения (learning rate), контролирующая вклад каждого дерева.
+
+\texttt{HistGradientBoosting} --- оптимизированная реализация градиентного бустинга в scikit-learn, основанная на гистограммном подходе (аналог LightGBM). Дискретизация признаков в гистограммы позволяет значительно ускорить обучение на больших датасетах.
+
+\chapter{Практическая часть}
+
+\section{Данные}
+
+В работе используется датасет \texttt{Wine Quality}, содержащий физико-химические характеристики португальских вин <<Vinho Verde>>. Датасет включает два подмножества:
+\begin{itemize}
+	\item Красное вино --- 1599 экземпляров
+	\item Белое вино --- 4898 экземпляров
+\end{itemize}
+
+Каждый экземпляр описывается 11 числовыми признаками.
+Целевая переменная --- сорт вина (0~--- красное, 1~--- белое).
+Пропусков в данных нет.
+Имеется небольшой дисбаланс классов: белое вино составляет около 75\% выборки.
+
+\section{Разведочный анализ данных}
+
+Корреляционный анализ выявил следующие закономерности:
+\begin{itemize}
+	\item Наиболее коррелированные с целевой переменной признаки: \texttt{total sulfur dioxide} ($+0{,}70$), \texttt{volatile acidity} ($-0{,}65$), \texttt{chlorides} ($-0{,}51$), \texttt{free sulfur dioxide} ($+0{,}47$), \texttt{fixed acidity} ($-0{,}49$), \texttt{sulphates} ($-0{,}49$).
+	\item \texttt{Free sulfur dioxide} и \texttt{total sulfur dioxide} положительно коррелируют между собой.
+	\item \texttt{Density} и \texttt{alcohol} имеют отрицательную корреляцию.
+	\item \texttt{Density} положительно коррелирует с \texttt{fixed acidity} и \texttt{residual sugar}.
+\end{itemize}
+
+Корреляционная матрица представлена на рис.~\ref{img:heatmap}.
+\includeimage
+	{heatmap}
+	{f}
+	{h}
+	{\textwidth}
+	{Корреляционная матрица признаков}
+
+Распределения наиболее информативных признаков по классам показаны на рис.~\ref{img:distribution}.
+\includeimage
+	{distribution}
+	{f}
+	{h}
+	{\textwidth}
+	{Распределения признаков по классам (KDE)}
+
+\clearpage
+\section{Обучение моделей}
+
+Данные разделены на обучающую (75\%) и тестовую (25\%) выборки.
+Перед обучением применена стандартизация признаков (\texttt{StandardScaler}).
+Обучены следующие модели:
+\begin{enumerate}
+	\item \textbf{Linear SVM};
+	\item \textbf{RBF SVM};
+	\item \textbf{Poly SVM};
+	\item \textbf{Hist Gradient Boosting}.
+\end{enumerate}
+
+\section{Результаты}
+
+Метрики качества на тестовой выборке представлены в табл.~\ref{tab:results}.
+\begin{table}[h]
+\centering
+\caption{Сравнение качества моделей}
+\label{tab:results}
+\begin{tabularx}{\textwidth}{|l|d{2.4}|d{2.4}|d{2.4}|d{2.4}|d{2.4}|}
+	\hline
+	Модель & \multicolumn{1}{c|}{Accuracy} & \multicolumn{1}{c|}{Precision} & \multicolumn{1}{c|}{Recall} & \multicolumn{1}{c|}{F1} & \multicolumn{1}{c|}{ROC AUC} \\
+	\hline
+	\texttt{RBF SVM}              & 0.9957 & 0.9952 & 0.9992 & 0.9972 & 0.9971 \\
+	\hline
+	\texttt{Hist Gradient Boosting} & 0.9932 & 0.9928 & 0.9984 & 0.9956 & 0.9960 \\
+	\hline
+	\texttt{Linear SVM}           & 0.9920 & 0.9960 & 0.9936 & 0.9948 & 0.9911 \\
+	\hline
+	\texttt{Poly SVM}             & 0.9914 & 0.9936 & 0.9952 & 0.9944 & 0.9936 \\
+	\hline
+\end{tabularx}
+\end{table}
+
+\clearpage
+Матрицы ошибок для каждой модели показаны на рис.~\ref{img:confmatrix}.
+\includeimage
+	{confmatrix}
+	{f}
+	{h}
+	{\textwidth}
+	{Матрицы ошибок для каждой модели}
+
+\clearpage
+ROC-кривые представлены на рис.~\ref{img:roc}.
+\includeimage
+	{roc}
+	{f}
+	{h}
+	{\textwidth}
+	{ROC-кривые для различных моделей}
+
+\chapter{Вывод}
+
+В результате работы можно сделать следующие выводы:
+\begin{enumerate}
+	\item все четыре модели показывают высокое качество классификации (accuracy $> 0{,}99$), что объясняется хорошей разделимостью классов по физико-химическим признакам;
+	\item наилучший результат показал RBF SVM (F1 = 0{,}9972, ROC AUC = 0{,}9971), что подтверждает эффективность нелинейного ядра для данной задачи;
+	\item Hist Gradient Boosting занимает второе место (F1 = 0{,}9956), демонстрируя высокое качество при минимальных настройках гиперпараметров;
+	\item Linear SVM и Poly SVM показывают сопоставимые результаты (F1 $\approx$ 0{,}994), при этом линейный SVM имеет более высокую точность (precision), а поли-ядро --- более высокую полноту (recall);
+	\item наиболее информативными признаками для определения сорта вина являются \texttt{total sulfur dioxide}, \texttt{volatile acidity} и \texttt{chlorides}.
+\end{enumerate}
+
+\end{document}

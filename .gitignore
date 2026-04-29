@@ -206,6 +206,18 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+# Tex files
+*.aux
+*.xml
+*.toc
+*.gz
+*.log
+*.bbl
+*.blg
+*.bcf
+*.out
+app
+
 # Local
 .DS_Store
 .vscode/

@@ -34,5 +34,11 @@ taken as the final model.
 | Recall, macro | 0.916 |
 | F1, macro | 0.920 |
 
+![ROC curves per class](figures/roc.png)
+
+*One-vs-rest ROC per surface, with the micro-average at 0.994. Concrete is the hardest class
+at 0.980 despite being the most common one, and hard tiles reach 1.000 on 21 examples, which
+is a number to treat with suspicion rather than pride.*
+
 Macro precision and recall come out above the plain accuracy, which is the sign that the
 forest is not simply riding the large classes and dropping the rare ones.

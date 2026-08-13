@@ -9,6 +9,14 @@ The BI2013a dataset from MOABB under the P300 paradigm, 80 820 epochs of 16 chan
 samples. An epoch is labelled Target when it followed the stimulus the subject was counting
 and NonTarget otherwise, and targets are the rare class by design of the experiment.
 
+The response itself is visible in the averaged signal, which is what makes the problem
+tractable at all.
+
+![Average ERP](figures/erp.png)
+
+*The averaged evoked potential on one channel. Target trials rise through the P300 window
+between 0.25 and 0.5 seconds, non-target trials stay flat.*
+
 ## Method
 
 Epochs are decimated into a 96-dimensional feature vector per trial and standardised. Three
@@ -25,6 +33,14 @@ epoch from a known one.
 | Polynomial, subsample | 0.691 | 0.264 | 0.480 | 0.341 | 0.637 |
 | RBF, subsample | 0.697 | 0.266 | 0.469 | 0.340 | 0.649 |
 | Linear, full | 0.616 | 0.235 | 0.576 | 0.333 | 0.631 |
+
+![Confusion matrices](figures/confusion.png)
+
+*Confusion matrices for the three models.*
+
+![ROC curves](figures/roc.png)
+
+*ROC curves. All three sit well above the diagonal and close to each other.*
 
 The numbers are modest and that is the honest result for cross-subject P300 with plain
 SVMs. Accuracy is the misleading column, since predicting NonTarget always would score

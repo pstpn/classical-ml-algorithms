@@ -23,6 +23,17 @@ standard split after the categorical attributes are encoded.
 | F1 | 1.000 |
 | ROC AUC | 1.000 |
 
+![Learning curve](figures/learning_curve.png)
+
+*Training loss by epoch. The network is essentially done after five epochs.*
+
+![Confusion matrix](figures/confusion.png)
+
+![ROC curve](figures/roc.png)
+
+*Not a single misclassification on the test set, so the ROC curve is the degenerate one
+through the top left corner.*
+
 A perfect score is a result about the dataset, not about the network. The attributes contain
 features, odour above all, that separate the two classes almost by themselves, so the
 interesting question here is not how well a model can do but how little model the problem

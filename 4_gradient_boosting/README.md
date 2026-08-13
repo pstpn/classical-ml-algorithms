@@ -25,7 +25,13 @@ conservative step chosen to keep the ensemble from overfitting a dataset of this
 | Recall, macro | 0.936 |
 | F1, macro | 0.937 |
 
+![ROC curves per class](figures/roc.png)
+
+*One-vs-rest ROC curve for each activity.*
+
 All four numbers sit within half a point of each other, and since the macro averages weigh
-every activity equally regardless of how often it occurs, that agreement says the model is
-not carrying its score on the easy majority classes. The confusion matrix and the ROC curves
-per class are drawn in the notebook.
+every activity equally, that agreement says the model is not carrying its score on the easy
+classes. The per-class curves show where the remaining error lives: laying is perfect at
+1.000 and the three walking variants sit at 0.996 and above, while sitting at 0.994 and
+standing at 0.995 are the hardest pair, which is what the sensors predict, since a phone
+reports nearly the same orientation and nearly no motion in both.
